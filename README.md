@@ -72,6 +72,9 @@ they run and verifies the result before reporting.
 - Workers cannot delegate further and cannot ask the user questions; a blocked worker
   reports `BLOCKED:` instead of guessing.
 
+## Verification policy
+
+Verification is budgeted, not ritual. Workers prove their change with fast local checks (type check, build, lint, focused tests) and stop there; they never open a browser, start a dev server, or run an end-to-end pass. Browser and end-to-end proof belongs to the `tester` preset, which the lead dispatches once per round for the criteria that actually need it. Reviewers are read-only and capped at one per round. The lead reads files and worker evidence and is told never to drive a browser or a dev server itself, so runtime proof always comes from that single tester pass.
 ## Requirements
 
 - DeepSeek Harness **0.2.2-rc.1** (tested).
