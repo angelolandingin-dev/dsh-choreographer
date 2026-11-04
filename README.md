@@ -98,5 +98,3 @@ MIT. The agent roles, prompts, and orchestration rules are ported from
 [x01Jin/openchoreographer](https://github.com/x01Jin/openchoreographer) (MIT).
 DeepSeek Harness and its plugin packages belong to their authors.
 
-Replace this line once the repository exists: `repository`, `author`, and `bugs` fields
-in `package.json` are intentionally unset.
