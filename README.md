@@ -35,6 +35,17 @@ Workers share one return contract, so their results are easy to read side by sid
 3. Enable the bundle when the install finishes.
 4. Start a new session and pick **Choreographer** in the agent picker.
 
+### From GitHub (before the package is on npm)
+
+Enter `github:angelolandingin-dev/dsh-choreographer` in **Plugins → Add plugin**, or run:
+
+```sh
+dsh plugin --profile desktop add github:angelolandingin-dev/dsh-choreographer
+```
+
+Then make sure `dsh-choreographer` is listed in `dsh.profile.bundles` in the
+profile `package.json` (the Plugins page does this for you).
+
 ### From a checkout
 
 ```sh
