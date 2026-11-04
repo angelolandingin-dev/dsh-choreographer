@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+
+# build and packaging
+*.tgz
+*.tar.gz
+
+# local tooling output (extracted Harness sources, one-off migration scripts)
+tools/*
+!tools/validate.cjs
+!tools/make-portable.cjs
+
+# editors and OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
