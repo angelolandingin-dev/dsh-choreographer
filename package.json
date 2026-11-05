@@ -1,7 +1,7 @@
 {
   "name": "dsh-choreographer",
-  "version": "1.1.0",
-  "description": "A trimmed DeepSeek Harness port of x01Jin/openchoreographer: one read-only tech-lead preset plus eight specialist worker presets it delegates to.",
+  "version": "1.2.0",
+  "description": "A trimmed DeepSeek Harness port of x01Jin/openchoreographer: one hands-on tech lead that edits small changes itself and delegates large, parallel, or risky work to eight specialist worker presets.",
   "type": "module",
   "license": "MIT",
   "homepage": "https://github.com/angelolandingin-dev/dsh-choreographer#readme",

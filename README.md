@@ -1,8 +1,9 @@
 # dsh-choreographer
 
 A trimmed [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) port of
-[x01Jin/openchoreographer](https://github.com/x01Jin/openchoreographer): one read-only
-tech-lead agent plus eight specialist worker agents it delegates to.
+[x01Jin/openchoreographer](https://github.com/x01Jin/openchoreographer): one hands-on
+tech-lead agent that edits small changes itself and delegates large, parallel, or risky work
+to eight specialist worker agents.
 
 The port keeps the part that makes orchestration work — one agent that inspects, plans,
 delegates, and verifies — and drops the rest. The original 14 agents become 9 presets:
@@ -13,7 +14,7 @@ database + devops become one platform role.
 
 | Preset | Role | Tools |
 | --- | --- | --- |
-| **choreographer** | Read-only tech lead: restates the goal, inspects, splits the work, delegates, verifies, reports | read / glob / grep, web fetch + search, todo, ask-user, time context, skills, goals, schedules, subagent delegation, compaction — **no write, edit, or shell** |
+| **choreographer** | Hands-on tech lead: inspects, edits small changes itself, splits genuinely parallel work, delegates, verifies, reports | read / write / edit / glob / grep, platform shell, web fetch + search, todo, ask-user, time context, skills, goals, schedules, subagent delegation, compaction |
 | explore | Returns a `path:line` map of the codebase. No edits, no commands | read-only fs |
 | backend | APIs, services, auth, integrations, jobs, server-side validation | fs + platform shell |
 | frontend | Components, client state, styling, a11y, responsive layout, loading/error states | fs + platform shell |
@@ -60,10 +61,11 @@ plus one Cordis patch file that declares the presets.
 
 ## Using it
 
-Pick **Choreographer** as the session's agent. It reads the repository, writes a plan,
-and spawns worker presets through the `subagent` tool with an explicit `agent_preset`.
-Workers run in parallel when their files do not overlap; the lead keeps working while
-they run and verifies the result before reporting.
+Pick **Choreographer** as the session's agent. It reads the repository and makes small
+changes itself; when the work splits into disjoint areas it spawns worker presets through
+the `subagent` tool with an explicit `agent_preset`. It dispatches those slices together
+so they run in parallel, keeps working while they run, and verifies the result before
+reporting.
 
 - Presets are chosen per session and **lock after the first turn**. To switch, start a
   new session.
@@ -74,7 +76,7 @@ they run and verifies the result before reporting.
 
 ## Verification policy
 
-Verification is budgeted, not ritual. Workers prove their change with fast local checks (type check, build, lint, focused tests) and stop there; they never open a browser, start a dev server, or run an end-to-end pass. Browser and end-to-end proof belongs to the `tester` preset, which the lead dispatches once per round for the criteria that actually need it. Reviewers are read-only and capped at one per round. The lead reads files and worker evidence and is told never to drive a browser or a dev server itself, so runtime proof always comes from that single tester pass.
+Verification is budgeted, not ritual. The lead proves its own edits with one cheap check and a read of the changed file. Workers prove their change with fast local checks (type check, build, lint, focused tests) and stop there; they never open a browser, start a dev server, or run an end-to-end pass. Browser and end-to-end proof belongs to the `tester` preset, which the lead dispatches once per round for the criteria that actually need it. Reviewers are read-only and capped at one per round. The lead reads files and worker evidence and is told never to drive a browser or a dev server itself, so runtime proof always comes from that single tester pass.
 ## Requirements
 
 - DeepSeek Harness **0.2.2-rc.1** (tested).
@@ -83,8 +85,8 @@ Verification is budgeted, not ritual. Workers prove their change with fast local
   Harness release renames or removes one, that preset fails to compose and the failing
   row appears under **Settings → Session plugins**; update `cordis.patch.yml` and bump
   the version.
-- Windows uses `tool-pwsh`; macOS and Linux use `tool-bash`. Both rows exist in every
-  worker preset with a platform guard, mirroring the shipped standard preset.
+- Windows uses `tool-pwsh`; macOS and Linux use `tool-bash`. Both rows exist in the lead
+  and in every worker preset with a platform guard, mirroring the shipped standard preset.
 
 ## How it is built
 
