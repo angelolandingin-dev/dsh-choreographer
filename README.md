@@ -127,12 +127,14 @@ reviewer per round, and only for control-flow or security-relevant work.
 ## How it is built
 
 `cordis.patch.yml` inserts one `@deepseek-ai/dsh-agent-preset` row. It mounts a persona
-prompt, the standard tool set, and `@deepseek-ai/dsh-experimental-tool-agent-team`
-(`freshProvider: spawn`, `forkProvider: fork`) — no `subagent` rows.
+prompt and the standard tool set — no `subagent` rows and no `tool-agent-team` row: the
+Agent Teams profile bundle already mounts the team tools for every session, and a second
+mount in the preset realm breaks agent composition.
 
 ```
-cordis.patch.yml    one preset declaration
-tools/validate.cjs  parses the patch and prints the composition (dev helper, not published)
+cordis.patch.yml       one preset declaration
+tools/validate.cjs     parses the patch and prints the composition (dev helper, not published)
+tools/bump-version.cjs bumps package.json (dev helper, not published)
 ```
 
 Run `npm run validate` after editing the patch.
