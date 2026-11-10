@@ -6,9 +6,9 @@ tech-lead agent that edits small changes itself and delegates large, parallel, o
 to eight specialist worker agents.
 
 The port keeps the part that makes orchestration work — one agent that inspects, plans,
-delegates, and verifies — and drops the rest. The original 14 agents become 9 presets:
-the five separate reviewer roles collapse into one reviewer that takes a lens, and
-database + devops become one platform role.
+delegates, and verifies — and drops the rest. The original 14 agents become 10 presets:
+the five separate reviewer roles collapse into one reviewer that takes a lens, database +
+devops become one platform role, and a Fleet lead runs the same job through Agent Teams.
 
 ## What you get
 
@@ -23,6 +23,7 @@ database + devops become one platform role.
 | designer | States before pixels. Copy, accessibility, acceptance criteria. No code | read-only fs |
 | writer | Docs only: current behavior, verified commands, markdown | fs + platform shell |
 | reviewer | One lens per task: `correctness` (default), `security`, `plan`, `scope`, `execution` | read-only fs |
+| **fleet** | Team lead for Agent Teams: creates shared tasks with write scopes, spawns teammates, reviews the merged result | fs + platform shell, web, todo, ask-user, skills, goals, schedules, team tools, compaction |
 
 Workers share one return contract, so their results are easy to read side by side:
 `TASK`, `FILES`, `CHECKS`, `NOT DONE`, `BLOCKED`, `RISK`.
@@ -74,12 +75,37 @@ reporting.
 - Workers cannot delegate further and cannot ask the user questions; a blocked worker
   reports `BLOCKED:` instead of guessing.
 
+## Fleet (Agent Teams)
+
+Pick **Fleet** instead of **Choreographer** when the Agent Teams bundle
+(`@deepseek-ai/dsh-experimental-agent-team-profile`) is enabled. Fleet composes the same
+tool set but swaps subagent delegation for the Team tools, and its persona runs the work
+through the shared board instead of through `subagent` calls:
+
+- tasks are created first, each with explicit `write_scopes`, and teammates claim and
+  complete them; `blocked_by` orders dependent work;
+- a teammate is a generic agent — no preset, no inherited context — so the brief must
+  carry the role, files, constraints, acceptance criteria, the one check to run, and the
+  return format; the persona includes that template;
+- the lead reads every report as a claim, reads the changed files, and runs the check
+  itself before accepting; it owns the final diff and the tests;
+- costs are capped: spawn only for disjoint slices worth ≥15 steps, two to four at a
+  time, one writer per file.
+
+Fleet and the eight worker presets do not combine: teammates cannot be assigned a preset,
+so worker roles exist only as briefs under Agent Teams. Keep Choreographer for the
+subagent flow and Fleet for the team flow; both ship in this bundle.
+
 ## Verification policy
 
 Verification is budgeted, not ritual. The lead proves its own edits with one cheap check and a read of the changed file. Workers prove their change with fast local checks (type check, build, lint, focused tests) and stop there; they never open a browser, start a dev server, or run an end-to-end pass. Browser and end-to-end proof belongs to the `tester` preset, which the lead dispatches once per round for the criteria that actually need it. Reviewers are read-only and capped at one per round. The lead reads files and worker evidence and is told never to drive a browser or a dev server itself, so runtime proof always comes from that single tester pass.
 ## Requirements
 
 - DeepSeek Harness **0.2.2-rc.1** (tested).
+- The **Fleet** preset additionally needs the Agent Teams profile bundle enabled
+  (`@deepseek-ai/dsh-experimental-agent-team-profile`), which provides the
+  `ctx.agentTeams` service. Without it that preset fails to compose; the other nine
+  presets are unaffected.
 - The patch references components that ship inside the Harness
   (`@deepseek-ai/dsh-persona`, `dsh-tool-fs`, `dsh-tool-subagent`, …). If a future
   Harness release renames or removes one, that preset fails to compose and the failing
@@ -90,13 +116,14 @@ Verification is budgeted, not ritual. The lead proves its own edits with one che
 
 ## How it is built
 
-`cordis.patch.yml` inserts nine `@deepseek-ai/dsh-agent-preset` rows. Each row lists
-ordinary Harness plugins: a persona prompt, the tool mounts for that role, and — for
-the lead — a `subagent` instance whose `allowedAgentPresets` exposes exactly the eight
-worker ids.
+`cordis.patch.yml` inserts ten `@deepseek-ai/dsh-agent-preset` rows. Each row lists
+ordinary Harness plugins: a persona prompt and the tool mounts for that role. The
+Choreographer lead mounts a `subagent` instance whose `allowedAgentPresets` exposes
+exactly the eight worker ids; the Fleet lead mounts
+`@deepseek-ai/dsh-experimental-tool-agent-team` instead.
 
 ```
-cordis.patch.yml   nine preset declarations
+cordis.patch.yml   ten preset declarations
 tools/validate.cjs parses the patch and prints the roster (dev helper, not published)
 ```
 

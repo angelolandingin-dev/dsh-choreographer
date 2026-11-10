@@ -1,7 +1,7 @@
 {
   "name": "dsh-choreographer",
-  "version": "1.2.0",
-  "description": "A trimmed DeepSeek Harness port of x01Jin/openchoreographer: one hands-on tech lead that edits small changes itself and delegates large, parallel, or risky work to eight specialist worker presets.",
+  "version": "1.3.0",
+  "description": "Agent presets for DeepSeek Harness: a hands-on choreographer tech lead, specialist workers, and a Fleet lead for Agent Teams.",
   "type": "module",
   "license": "MIT",
   "homepage": "https://github.com/angelolandingin-dev/dsh-choreographer#readme",
