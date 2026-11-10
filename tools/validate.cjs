@@ -27,7 +27,7 @@ const plugins = lead.config.plugins;
 const persona = plugins.find((x) => x.id === "persona").config.prefix;
 console.log("lead persona chars:", persona.length);
 const team = plugins.find((x) => x.id === "team");
-console.log("team row:", team ? JSON.stringify(team.config) : "MISSING");
+console.log("team row:", team ? JSON.stringify(team.config) : "none (the profile bundle supplies it)");
 const delegation = plugins.find((x) => x.id === "delegation" || x.id === "tool-subagent");
 console.log("subagent rows:", delegation ? "PRESENT (unexpected)" : "none");
 const shells = rows.flatMap((r) =>
