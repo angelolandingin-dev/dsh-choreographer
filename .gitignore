@@ -1,4 +1,4 @@
-# dependencies
+﻿# dependencies
 node_modules/
 package-lock.json
 pnpm-lock.yaml
@@ -9,8 +9,7 @@ pnpm-lock.yaml
 
 # local tooling output (extracted Harness sources, one-off migration scripts)
 tools/*
-!tools/validate.cjs
-!tools/make-portable.cjs
+!tools/validate.cjs`n!tools/bump-version.cjs
 
 # editors and OS
 .DS_Store
