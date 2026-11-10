@@ -57,7 +57,8 @@ RETURN: files changed, command + exit code, failures, unverified risks
 2. Choose **Add plugin**, enter `dsh-choreographer`, and install.
 3. Enable the bundle when the install finishes.
 4. Make sure the Agent Teams bundle is enabled too
-   (`@deepseek-ai/dsh-experimental-agent-team-profile`) — this preset mounts its tools.
+   (`@deepseek-ai/dsh-experimental-agent-team-profile`) — it mounts the team tools for every
+   session; the preset deliberately does not mount them a second time.
 5. Start a new session and pick **Choreographer** in the agent picker.
 
 ### From GitHub
@@ -117,8 +118,8 @@ reviewer per round, and only for control-flow or security-relevant work.
 
 - DeepSeek Harness **0.2.2-rc.1** or newer (tested on 0.2.2-rc.1).
 - The **Agent Teams** profile bundle enabled, which provides `ctx.agentTeams` and the team
-  tools. Without it the preset fails to compose (the failing row shows under
-  **Settings → Session plugins**).
+  tools. Without it the preset still composes, but the lead has no way to spawn a teammate,
+  so it can only answer with reads and its own edits.
 - The patch references components that ship inside the Harness. If a release renames or
   removes one, the preset fails to compose; update `cordis.patch.yml` and bump the version.
 - Windows uses `tool-pwsh`, macOS and Linux use `tool-bash`, guarded per platform.
