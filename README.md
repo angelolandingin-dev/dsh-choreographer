@@ -1,32 +1,53 @@
 # dsh-choreographer
 
-A trimmed [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) port of
-[x01Jin/openchoreographer](https://github.com/x01Jin/openchoreographer): one hands-on
-tech-lead agent that edits small changes itself and delegates large, parallel, or risky work
-to eight specialist worker agents.
+A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) **Agent Teams**
+preset: one lead that runs a request through a small, reusable roster of named teammates
+instead of spawning a fresh worker per task.
 
-The port keeps the part that makes orchestration work — one agent that inspects, plans,
-delegates, and verifies — and drops the rest. The original 14 agents become 10 presets:
-the five separate reviewer roles collapse into one reviewer that takes a lens, database +
-devops become one platform role, and a Fleet lead runs the same job through Agent Teams.
+It is a trimmed port of [x01Jin/openchoreographer](https://github.com/x01Jin/openchoreographer)
+adapted to Agent Teams: one lead, one team, lanes as durable teammates.
+
+## The idea
+
+Worker-subagent orchestration pays a cold start for every task: a new agent, a new brief,
+a new re-read of the same files, then the agent is thrown away. Most sessions end up
+delegating serially, so the cold starts cost more than they save.
+
+This preset keeps the workers alive instead. The lead:
+
+- plans lanes for the request (backend, frontend, tester, reviewer, …),
+- spawns a lane **once**, on its first real slice,
+- creates a shared task with `write_scopes` for each piece of work and hands it to the
+  lane owner by name,
+- reuses that teammate with `send_message` for every later task in the same lane,
+- verifies the work itself and owns the final diff.
+
+A spawn is the exception; a reuse is the pattern. That is the whole design.
 
 ## What you get
 
-| Preset | Role | Tools |
-| --- | --- | --- |
-| **choreographer** | Hands-on tech lead: inspects, edits small changes itself, splits genuinely parallel work, delegates, verifies, reports | read / write / edit / glob / grep, platform shell, web fetch + search, todo, ask-user, time context, skills, goals, schedules, subagent delegation, compaction |
-| explore | Returns a `path:line` map of the codebase. No edits, no commands | read-only fs |
-| backend | APIs, services, auth, integrations, jobs, server-side validation | fs + platform shell |
-| frontend | Components, client state, styling, a11y, responsive layout, loading/error states | fs + platform shell |
-| platform | Database and devops merged: schemas, migrations, queries, build, CI, containers, deploy | fs + platform shell |
-| tester | Reproduces first, then verifies behavior against the exact command and exit code | fs + platform shell |
-| designer | States before pixels. Copy, accessibility, acceptance criteria. No code | read-only fs |
-| writer | Docs only: current behavior, verified commands, markdown | fs + platform shell |
-| reviewer | One lens per task: `correctness` (default), `security`, `plan`, `scope`, `execution` | read-only fs |
-| **fleet** | Team lead for Agent Teams: creates shared tasks with write scopes, spawns teammates, reviews the merged result | fs + platform shell, web, todo, ask-user, skills, goals, schedules, team tools, compaction |
+One preset, `choreographer`:
 
-Workers share one return contract, so their results are easy to read side by side:
-`TASK`, `FILES`, `CHECKS`, `NOT DONE`, `BLOCKED`, `RISK`.
+| | |
+| --- | --- |
+| Role | Team lead: inspects, edits small changes itself, splits disjoint work across a reusable roster, verifies, reports |
+| Tools | read / write / edit / glob / grep, platform shell, web fetch + search, todo, ask-user, time context, skills, goals, schedules, **team tools** (spawn / message / wait / tasks / roster), compaction |
+| Not mounted | `subagent` and `subagent-control` — delegation happens through the team only |
+
+Teammates inherit the lead's tools and none of its context, so the brief is the whole
+role. The persona ships a brief template:
+
+```
+TASK: <task id>
+ROLE: <the lane this teammate owns>
+GOAL: <concrete outcome>
+FILES: <paths it owns>
+CONSTRAINTS: <patterns, things that must not change>
+ACCEPTANCE: <observable criteria>
+CHECK: <one command that proves it>
+DO NOT TOUCH: <outside its scope>
+RETURN: files changed, command + exit code, failures, unverified risks
+```
 
 ## Install
 
@@ -35,9 +56,11 @@ Workers share one return contract, so their results are easy to read side by sid
 1. Open **Plugins** in the DSH sidebar.
 2. Choose **Add plugin**, enter `dsh-choreographer`, and install.
 3. Enable the bundle when the install finishes.
-4. Start a new session and pick **Choreographer** in the agent picker.
+4. Make sure the Agent Teams bundle is enabled too
+   (`@deepseek-ai/dsh-experimental-agent-team-profile`) — this preset mounts its tools.
+5. Start a new session and pick **Choreographer** in the agent picker.
 
-### From GitHub (before the package is on npm)
+### From GitHub
 
 Enter `github:angelolandingin-dev/dsh-choreographer` in **Plugins → Add plugin**, or run:
 
@@ -45,8 +68,8 @@ Enter `github:angelolandingin-dev/dsh-choreographer` in **Plugins → Add plugin
 dsh plugin --profile desktop add github:angelolandingin-dev/dsh-choreographer
 ```
 
-Then make sure `dsh-choreographer` is listed in `dsh.profile.bundles` in the
-profile `package.json` (the Plugins page does this for you).
+Then make sure `dsh-choreographer` is listed in `dsh.profile.bundles` in the profile
+`package.json` (the Plugins page does this for you).
 
 ### From a checkout
 
@@ -54,90 +77,65 @@ profile `package.json` (the Plugins page does this for you).
 dsh plugin --profile desktop add <path-to-this-repo>
 ```
 
-Then add `dsh-choreographer` to `dsh.profile.bundles` in the profile's `package.json`
-(the managed install done by the Plugins page writes that entry for you).
-
-The plugin needs no build step and no runtime dependencies. It is a package manifest
-plus one Cordis patch file that declares the presets.
+The package has no build step and no runtime dependencies: one manifest plus one Cordis
+patch file.
 
 ## Using it
 
-Pick **Choreographer** as the session's agent. It reads the repository and makes small
-changes itself; when the work splits into disjoint areas it spawns worker presets through
-the `subagent` tool with an explicit `agent_preset`. It dispatches those slices together
-so they run in parallel, keeps working while they run, and verifies the result before
-reporting.
+Pick **Choreographer** as the session's agent. Presets are chosen per session and **lock
+after the first turn**; to switch, start a new session.
 
-- Presets are chosen per session and **lock after the first turn**. To switch, start a
-  new session.
-- The reviewer takes its lens from the task, for example:
-  `lens: security — review the diff for authz gaps`.
-- Workers cannot delegate further and cannot ask the user questions; a blocked worker
-  reports `BLOCKED:` instead of guessing.
+The roster is yours to steer: `list_agents` shows who is resident and idle, `send_message`
+wakes an idle teammate, `wait_agent` returns on its next message or status change.
+Teammates stay resident between tasks by design; `inactive` means idle, not failed.
 
-## Fleet (Agent Teams)
+Rules the persona enforces:
 
-Pick **Fleet** instead of **Choreographer** when the Agent Teams bundle
-(`@deepseek-ai/dsh-experimental-agent-team-profile`) is enabled. Fleet composes the same
-tool set but swaps subagent delegation for the Team tools, and its persona runs the work
-through the shared board instead of through `subagent` calls:
-
-- tasks are created first, each with explicit `write_scopes`, and teammates claim and
-  complete them; `blocked_by` orders dependent work;
-- a teammate is a generic agent — no preset, no inherited context — so the brief must
-  carry the role, files, constraints, acceptance criteria, the one check to run, and the
-  return format; the persona includes that template;
-- the lead reads every report as a claim, reads the changed files, and runs the check
-  itself before accepting; it owns the final diff and the tests;
-- costs are capped: spawn only for disjoint slices worth ≥15 steps, two to four at a
-  time, one writer per file.
-
-Fleet and the eight worker presets do not combine: teammates cannot be assigned a preset,
-so worker roles exist only as briefs under Agent Teams. Keep Choreographer for the
-subagent flow and Fleet for the team flow; both ship in this bundle.
+- one owner per lane; a second teammate for the same lane is a last resort;
+- a spawn must buy a slice worth ≥15 steps, or one independent check;
+- two to four active teammates; more is coordination cost;
+- one writer per file; disjoint `write_scopes` are the only isolation there is;
+- every report is a claim: the lead reads the changed files and runs the check itself.
 
 ## Verification policy
 
-Verification is budgeted, not ritual. The lead proves its own edits with one cheap check and a read of the changed file. Workers prove their change with fast local checks (type check, build, lint, focused tests) and stop there; they never open a browser, start a dev server, or run an end-to-end pass. Browser and end-to-end proof belongs to the `tester` preset, which the lead dispatches once per round for the criteria that actually need it. Reviewers are read-only and capped at one per round. The lead reads files and worker evidence and is told never to drive a browser or a dev server itself, so runtime proof always comes from that single tester pass.
+Verification is budgeted, not ritual. The lead proves its own edits with one cheap check and
+a read of the changed file. Teammates prove their change with fast local checks (type
+check, build, lint, focused tests) and stop there. Browser, end-to-end, or visual proof goes
+to the `tester` lane once per round, for the criteria that actually need it. At most one
+reviewer per round, and only for control-flow or security-relevant work.
+
 ## Requirements
 
-- DeepSeek Harness **0.2.2-rc.1** (tested).
-- The **Fleet** preset additionally needs the Agent Teams profile bundle enabled
-  (`@deepseek-ai/dsh-experimental-agent-team-profile`), which provides the
-  `ctx.agentTeams` service. Without it that preset fails to compose; the other nine
-  presets are unaffected.
-- The patch references components that ship inside the Harness
-  (`@deepseek-ai/dsh-persona`, `dsh-tool-fs`, `dsh-tool-subagent`, …). If a future
-  Harness release renames or removes one, that preset fails to compose and the failing
-  row appears under **Settings → Session plugins**; update `cordis.patch.yml` and bump
-  the version.
-- Windows uses `tool-pwsh`; macOS and Linux use `tool-bash`. Both rows exist in the lead
-  and in every worker preset with a platform guard, mirroring the shipped standard preset.
+- DeepSeek Harness **0.2.2-rc.1** or newer (tested on 0.2.2-rc.1).
+- The **Agent Teams** profile bundle enabled, which provides `ctx.agentTeams` and the team
+  tools. Without it the preset fails to compose (the failing row shows under
+  **Settings → Session plugins**).
+- The patch references components that ship inside the Harness. If a release renames or
+  removes one, the preset fails to compose; update `cordis.patch.yml` and bump the version.
+- Windows uses `tool-pwsh`, macOS and Linux use `tool-bash`, guarded per platform.
 
 ## How it is built
 
-`cordis.patch.yml` inserts ten `@deepseek-ai/dsh-agent-preset` rows. Each row lists
-ordinary Harness plugins: a persona prompt and the tool mounts for that role. The
-Choreographer lead mounts a `subagent` instance whose `allowedAgentPresets` exposes
-exactly the eight worker ids; the Fleet lead mounts
-`@deepseek-ai/dsh-experimental-tool-agent-team` instead.
+`cordis.patch.yml` inserts one `@deepseek-ai/dsh-agent-preset` row. It mounts a persona
+prompt, the standard tool set, and `@deepseek-ai/dsh-experimental-tool-agent-team`
+(`freshProvider: spawn`, `forkProvider: fork`) — no `subagent` rows.
 
 ```
-cordis.patch.yml   ten preset declarations
-tools/validate.cjs parses the patch and prints the roster (dev helper, not published)
+cordis.patch.yml    one preset declaration
+tools/validate.cjs  parses the patch and prints the composition (dev helper, not published)
 ```
 
 Run `npm run validate` after editing the patch.
 
 ## Uninstall
 
-Remove the bundle from the Plugins page. The presets disappear with it; sessions that
-already selected one keep their transcript but will fall back to the default preset
-when a new turn composes without the bundle.
+Remove the bundle from the Plugins page. Sessions that already selected the preset keep
+their transcript and keep running against the definition they composed with until restart;
+a new session composed without the bundle falls back to the default preset.
 
 ## Credits and license
 
-MIT. The agent roles, prompts, and orchestration rules are ported from
+MIT. The orchestration rules and role split are ported from
 [x01Jin/openchoreographer](https://github.com/x01Jin/openchoreographer) (MIT).
 DeepSeek Harness and its plugin packages belong to their authors.
-

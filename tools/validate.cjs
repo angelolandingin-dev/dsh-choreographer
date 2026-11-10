@@ -22,12 +22,14 @@ for (const r of rows) {
     p.map((x) => x.id + (x.group ? "(group)" : "")).join(","),
   );
 }
-const cho = rows[0].config.plugins.find((x) => x.id === "persona");
-console.log("choreographer prefix chars:", cho.config.prefix.length);
-const sub = rows[0].config.plugins
-  .find((x) => x.id === "delegation")
-  .config.find((x) => x.id === "tool-subagent").config;
-console.log("subagent:", JSON.stringify(sub));
+const lead = rows.find((r) => r.config.id === "choreographer");
+const plugins = lead.config.plugins;
+const persona = plugins.find((x) => x.id === "persona").config.prefix;
+console.log("lead persona chars:", persona.length);
+const team = plugins.find((x) => x.id === "team");
+console.log("team row:", team ? JSON.stringify(team.config) : "MISSING");
+const delegation = plugins.find((x) => x.id === "delegation" || x.id === "tool-subagent");
+console.log("subagent rows:", delegation ? "PRESENT (unexpected)" : "none");
 const shells = rows.flatMap((r) =>
   r.config.plugins
     .filter((x) => x.id === "tool-bash" || x.id === "tool-pwsh")
