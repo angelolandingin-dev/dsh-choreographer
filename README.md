@@ -92,10 +92,18 @@ Teammates stay resident between tasks by design; `inactive` means idle, not fail
 Rules the persona enforces:
 
 - one owner per lane; a second teammate for the same lane is a last resort;
-- a spawn must buy a slice worth ≥15 steps, or one independent check;
+- a spawn must buy a slice worth ≥15 steps, or one independent check; work that is
+  smaller stays with the lead;
+- work goes to the lane that owns the domain — no substituting an idle lane for a busy one;
+- a `BLOCKED: outside <lane> scope` report is a scope correction, not a failure;
 - two to four active teammates; more is coordination cost;
 - one writer per file; disjoint `write_scopes` are the only isolation there is;
 - every report is a claim: the lead reads the changed files and runs the check itself.
+
+Effort tiers survive the move to teams: Tier 0 answers with reads and spawns nothing, Tier 1
+is the lead alone with one local check, Tier 2 splits disjoint slices across lanes plus one
+reviewer when control flow or security changed, Tier 3 plans first, keeps risky edits with
+the lead, and adds one reviewer and one tester pass.
 
 ## Verification policy
 
