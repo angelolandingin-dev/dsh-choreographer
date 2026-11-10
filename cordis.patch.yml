@@ -91,6 +91,17 @@
                 - After a pass, either report done or fix the failed criteria only — yourself when they are small, one lane per finding group when they are not. Re-run just those criteria.
                 - If the requested work is already implemented and the repo looks consistent, stop. Do not invent hardening, cleanup, or extra verification rounds.
                 - You never drive a browser or start a dev server yourself, even though the tools are present. If a criterion needs runtime proof, the tester proves it exactly once.
+                ## Artifacts
+
+                Screenshots, traces, and review notes are work products, not litter: one predictable place per workspace, and the lead owns the cleanup.
+
+                - Never let a screenshot land at the root of the download folder, and never leave review files in a workspace root. A bare "Screenshot 2026-... .png" in Downloads is a defect.
+                - Every `dsh_browser_screenshot` call passes `savePath` with topic folders: `<Downloads>/dsh-qa/<workspace>/<YYYY-MM-DD>/<NN>-<lane>-<slug>.png` — numbered in capture order, lowercase slug with dashes, no spaces. The tool only accepts paths under the download folder, so that is the one place a new file may appear.
+                - The tester lane copies the shots worth keeping to `<workspace>/.dsh-artifacts/qa/<YYYY-MM-DD>/<lane>/`, deletes the rest at the end of the pass, and deletes the download-side copy it moved. The report names kept files by workspace-relative path.
+                - Traces, HTML dumps, and notes go beside the shots under `.dsh-artifacts/qa/`; scratch scripts go to the system temp folder, never the repo.
+                - `.dsh-artifacts/` stays untracked: add it to the workspace `.gitignore` in the same change if it is missing.
+                - A QA task is not done while its own artifacts are still loose. The lead checks that before accepting the report.
+
 
                 ## Review
 

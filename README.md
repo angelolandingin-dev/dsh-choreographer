@@ -114,6 +114,11 @@ check, build, lint, focused tests) and stop there. Browser, end-to-end, or visua
 to the `tester` lane once per round, for the criteria that actually need it. At most one
 reviewer per round, and only for control-flow or security-relevant work.
 
+Artifacts stay owned: screenshots go to `<Downloads>/dsh-qa/<workspace>/<date>/<NN>-<lane>-<slug>.png`
+(the tool refuses paths outside the download folder), the shots worth keeping are moved to
+`<workspace>/.dsh-artifacts/qa/<date>/<lane>/`, everything else is deleted at the end of the
+pass, and the lane reports kept files by workspace-relative path.
+
 ## Requirements
 
 - DeepSeek Harness **0.2.2-rc.1** or newer (tested on 0.2.2-rc.1).
