@@ -9,7 +9,8 @@ pnpm-lock.yaml
 
 # local tooling output (extracted Harness sources, one-off migration scripts)
 tools/*
-!tools/validate.cjs`n!tools/bump-version.cjs
+!tools/validate.cjs
+!tools/bump-version.cjs
 
 # editors and OS
 .DS_Store
