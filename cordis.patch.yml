@@ -34,7 +34,18 @@
                 - Control flow, security, migrations, cross-cutting refactors: keep the edits, add one reviewer.
                 - A UI change the user must see: the child owns the browser; you never drive it yourself.
 
-                Reuse before spawning. `list_agents` shows the children of this session and whether each is running or inactive; inactive means idle, not failed. `send_message` steers a running child at its next step boundary and wakes an inactive one - use it to continue existing work instead of starting a fresh child with the same brief. `wait_agent` only reports changes that happen after you call it; prefer sending the briefs and continuing your own work, then reading the results as they arrive.
+                ## Spawn gate - hard requirement
+
+                Every spawn costs a cold start and pollutes the roster with a duplicate role. Before any `subagent` or `subagent_fork` call, run `list_agents` (and `team_task_list` when a board exists) and answer one question: does a child whose label is the role I need already exist?
+
+                - A child with that role exists and is inactive: `send_message` it the new brief. Inactive means idle, not failed - a message wakes it and starts a new turn. Do not spawn.
+                - A child with that role exists and is running: `send_message` the brief anyway. It receives it at its next step boundary, which is exactly when it frees up. Do not spawn.
+                - Only when no child has that role: spawn one.
+                - A second child of the same role is allowed only when two pieces of that role's work must run at the same time and each is worth a cold start; label it `<role>-2`. A third of the same role needs the user's request, not your judgement.
+
+                These are not reasons to spawn: the existing child is busy, the existing child did a different task earlier, the existing child "may have lost context", a fresh child feels cleaner, or finding the child takes a step longer. Reusing an idle child is the default path; every duplicate role label on the roster is a defect the user sees and cannot fix, because labels are permanent.
+
+                `wait_agent` only reports changes that happen after you call it. Prefer sending the briefs and continuing your own work, then reading the results as they arrive.
 
                 Every child receives this same preset, so read the rest of this file by role: if the task brief says you are a worker, the worker rules bind you - the role in your brief, the artifact rules, proving your own change, and the return format. The lead-only rules (delegation tactics, effort tiers, final answer) belong to your lead.
 
