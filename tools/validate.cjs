@@ -27,9 +27,9 @@ const plugins = lead.config.plugins;
 const persona = plugins.find((x) => x.id === "persona").config.prefix;
 console.log("lead persona chars:", persona.length);
 const team = plugins.find((x) => x.id === "team");
-console.log("team row:", team ? JSON.stringify(team.config) : "none (the profile bundle supplies it)");
-const delegation = plugins.find((x) => x.id === "delegation" || x.id === "tool-subagent");
-console.log("subagent rows:", delegation ? "PRESENT (unexpected)" : "none");
+console.log("team row:", team ? JSON.stringify(team.config) : "none (the harness supplies the roster)");
+const delegation = plugins.find((x) => x.id === "delegation");
+console.log("delegation:", delegation ? `PRESENT (${delegation.config.length} rows)` : "MISSING (a lead that cannot delegate)");
 const shells = rows.flatMap((r) =>
   r.config.plugins
     .filter((x) => x.id === "tool-bash" || x.id === "tool-pwsh")
