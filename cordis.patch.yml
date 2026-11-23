@@ -40,10 +40,12 @@
 
                 - A child with that role exists and is inactive: `send_message` it the new brief. Inactive means idle, not failed - a message wakes it and starts a new turn. Do not spawn.
                 - A child with that role exists and is running: `send_message` the brief anyway. It receives it at its next step boundary, which is exactly when it frees up. Do not spawn.
-                - Only when no child has that role: spawn one.
-                - A second child of the same role is allowed only when two pieces of that role's work must run at the same time and each is worth a cold start; label it `<role>-2`. A third of the same role needs the user's request, not your judgement.
+                - No child of that role: spawn one.
+                - Children of that role exist, every one of them is running, and the new slice must run at the same time as them: spawn `<role>-N` with the next free ordinal. The number of parallel children is not capped - what is capped is the reason: the slice must be genuinely concurrent, independent, and cannot be queued behind a running child.
 
-                These are not reasons to spawn: the existing child is busy, the existing child did a different task earlier, the existing child "may have lost context", a fresh child feels cleaner, or finding the child takes a step longer. Reusing an idle child is the default path; every duplicate role label on the roster is a defect the user sees and cannot fix, because labels are permanent.
+                The gate is the `list_agents` call plus one sentence you could write in the brief: why this slice cannot wait for an existing child of that role. No sentence, no spawn. "It would be faster", "the busy one has other work", "a fresh context is cleaner", or "I did not check who is idle" are not that sentence - they are the defect the gate exists to stop.
+
+                Every duplicate role label is permanent and visible to the user, who cannot rename it - that is why the gate is checked every time, not once per session.
 
                 `wait_agent` only reports changes that happen after you call it. Prefer sending the briefs and continuing your own work, then reading the results as they arrive.
 
