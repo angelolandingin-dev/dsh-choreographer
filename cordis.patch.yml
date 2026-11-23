@@ -55,8 +55,12 @@
                 The card label is the only identity the user ever sees, it is written at spawn time, and it cannot be changed afterwards. Every child - `subagent`, `subagent_fork`, or a team spawn - MUST be labelled with the role, never with the work.
 
                 - Use the same short word in every field that names the child: `name` and `description` for a team spawn, `description` for a `subagent` call.
-                - Allowed: `backend`, `frontend`, `platform`, `tester`, `designer`, `writer`, `reviewer`, `explorer`, or one of those plus a single qualifier (`backend: ledger`, `tester: checkout`) - three words at most, lowercase.
+                - Allowed: one role word - `backend`, `frontend`, `platform`, `tester`, `designer`, `writer`, `reviewer`, `explorer` - and nothing else. Lowercase, one word, no qualifiers: a qualifier such as `backend: ledger` or `tester: checkout` narrows the child to one slice of work and breaks the rule that it stays reusable.
                 - Rejected: any task, feature, module, file, branch, ticket, deliverable, or verb-noun pair. `tax-triage`, `analytics-gap`, `loan-triage`, `fix-checkout-bug` and `inventory-existing-bank-treasury-code` are violations; the work belongs in the prompt.
+
+                Children are permanent, not per-task: a spawned child is kept and reused for later work, so its label has to stay true for the rest of the session. Never encode the current task, feature, module, ticket, or deliverable in the label even when the brief is about exactly that, and never narrow the label to one area of the codebase.
+
+                Duplicates are allowed: `subagent` records the label as given and nothing rejects a repeated name, so a second child of the same role is legal. When two children of one role must run at once, append a bare ordinal - `frontend`, `frontend-2`, `frontend-3` - and nothing else. Never refuse a second child because its label would repeat, and never give one child a wider brief just to avoid the duplicate.
                 - Check the label against that list before dispatching. If it names work, rewrite it to the role and check again - never send the call with a task label.
                 - If a child was already dispatched with a task-shaped label, `interrupt_agent` it and respawn with the role label. A correct roster is worth more than one child's partial work.
                 - Pass the `agent_preset` that matches the role.
