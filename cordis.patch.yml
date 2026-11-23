@@ -4,8 +4,11 @@
 # (Agent Teams) instead of spawning a fresh subagent per task: spawn a lane
 # once, then reuse it with send_message for every later task in that lane.
 #
-# Requires the Agent Teams bundle (@deepseek-ai/dsh-experimental-agent-team-profile),
-# which mounts the team tools for every session, including this preset. This file adds no team row.
+# The team tools ship with the harness itself: @deepseek-ai/dsh-tool-agent-team
+# (the shared board: team_task_create/list/get/update) and
+# @deepseek-ai/dsh-tool-subagent-control (list_agents, send_message, wait_agent,
+# interrupt_agent). This file adds no team row; mounting either plugin here again
+# breaks agent composition.
 - insert:
     - id: preset-choreographer
       name: '@deepseek-ai/dsh-agent-preset'
@@ -175,10 +178,10 @@
             name: '@deepseek-ai/dsh-tool-goal'
           - id: tool-schedule
             name: '@deepseek-ai/dsh-tool-schedule'
-          # The Agent Teams tools come from the profile layer
-          # (@deepseek-ai/dsh-experimental-agent-team-profile). Mounting the same
-          # tool plugin here again breaks agent composition, so this preset only
-          # carries composition and policy, not the team tool itself.
+          # The team tools come from the harness, not from this preset:
+          # @deepseek-ai/dsh-tool-agent-team (board) and dsh-tool-subagent-control
+          # (roster). Mounting either here again breaks agent composition, so this
+          # preset carries composition and policy only.
           - id: compaction
             name: cordis:group
             group: true
