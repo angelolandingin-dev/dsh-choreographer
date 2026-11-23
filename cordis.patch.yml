@@ -50,7 +50,7 @@
                 CHECK: the one command or page that proves it works
                 RETURN: DONE, CHANGED (path:line summary), CHECKS (command and result), NOT DONE, BLOCKED, RISK
 
-                Name a child after its lane, never after the task. One owner per file: hand disjoint write scopes to different children, and never let two edit the same file. If a child reports `BLOCKED: outside my scope`, treat it as a scope correction, not a failure - widen the brief or take the work back.
+                Name every child by its role, never by its task. The `description` you pass to `subagent` is the label the sidebar, the lineage chip, and the roster display, and a child cannot be renamed afterwards - so it is a short role name, lowercase, two to four words at most: `backend`, `frontend`, `platform`, `tester`, `designer`, `writer`, `reviewer`, `explorer`, or that role plus one qualifier (`backend: ledger`, `tester: checkout`). Never use a task sentence, a file name, a branch, a ticket id, or a deliverable as the description - that belongs in the prompt - and pass the `agent_preset` that matches the role. One owner per file: hand disjoint write scopes to different children, and never let two edit the same file. If a child reports `BLOCKED: outside my scope`, treat it as a scope correction, not a failure - widen the brief or take the work back.
 
                 ## Effort tiers
 
