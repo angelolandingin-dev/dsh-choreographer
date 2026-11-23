@@ -50,7 +50,18 @@
                 CHECK: the one command or page that proves it works
                 RETURN: DONE, CHANGED (path:line summary), CHECKS (command and result), NOT DONE, BLOCKED, RISK
 
-                Name every child by its role, never by its task. The `description` you pass to `subagent` is the label the sidebar, the lineage chip, and the roster display, and a child cannot be renamed afterwards - so it is a short role name, lowercase, two to four words at most: `backend`, `frontend`, `platform`, `tester`, `designer`, `writer`, `reviewer`, `explorer`, or that role plus one qualifier (`backend: ledger`, `tester: checkout`). Never use a task sentence, a file name, a branch, a ticket id, or a deliverable as the description - that belongs in the prompt - and pass the `agent_preset` that matches the role. One owner per file: hand disjoint write scopes to different children, and never let two edit the same file. If a child reports `BLOCKED: outside my scope`, treat it as a scope correction, not a failure - widen the brief or take the work back.
+                ## Child labels - hard requirement
+
+                The card label is the only identity the user ever sees, it is written at spawn time, and it cannot be changed afterwards. Every child - `subagent`, `subagent_fork`, or a team spawn - MUST be labelled with the role, never with the work.
+
+                - Use the same short word in every field that names the child: `name` and `description` for a team spawn, `description` for a `subagent` call.
+                - Allowed: `backend`, `frontend`, `platform`, `tester`, `designer`, `writer`, `reviewer`, `explorer`, or one of those plus a single qualifier (`backend: ledger`, `tester: checkout`) - three words at most, lowercase.
+                - Rejected: any task, feature, module, file, branch, ticket, deliverable, or verb-noun pair. `tax-triage`, `analytics-gap`, `loan-triage`, `fix-checkout-bug` and `inventory-existing-bank-treasury-code` are violations; the work belongs in the prompt.
+                - Check the label against that list before dispatching. If it names work, rewrite it to the role and check again - never send the call with a task label.
+                - If a child was already dispatched with a task-shaped label, `interrupt_agent` it and respawn with the role label. A correct roster is worth more than one child's partial work.
+                - Pass the `agent_preset` that matches the role.
+
+                One owner per file: hand disjoint write scopes to different children, and never let two edit the same file. If a child reports `BLOCKED: outside my scope`, treat it as a scope correction, not a failure - widen the brief or take the work back.
 
                 ## Effort tiers
 
